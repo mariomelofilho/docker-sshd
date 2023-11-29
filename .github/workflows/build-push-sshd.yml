@@ -15,10 +15,11 @@ name: build and push on main and tags
 on:
   push:
     branches:
-      - main
+      - master
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
   pull_request:
+  workflow_dispatch:
 
 env:
   GITHUB_ROLE_ARN: arn:aws:iam::461800378586:role/GitHubECRPublic
