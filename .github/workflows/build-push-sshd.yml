@@ -10,7 +10,7 @@
 # Before tests are run a Docker build is performed, the resulting image has a tag of "test"
 # BATS is installed since it is commonly required by the tests.
 
-name: build and push on main and tags
+name: build and push on master and tags
 
 on:
   push:
