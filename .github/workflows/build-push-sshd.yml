@@ -32,7 +32,7 @@ env:
 
 jobs:
   build_and_push:
-    permission: write-all
+    permissions: write-all
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
