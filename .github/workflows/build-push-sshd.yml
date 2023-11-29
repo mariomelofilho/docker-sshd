@@ -22,7 +22,9 @@ on:
   workflow_dispatch:
 
 env:
-  GITHUB_ROLE_ARN: arn:aws:iam::461800378586:role/GitHubECRPublic
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}    
 
 permissions:
   id-token: write   # Required for OIDC
@@ -30,11 +32,17 @@ permissions:
 
 jobs:
   build_and_push:
-
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}   
 
       - name: Get repo name
         id: image_name
@@ -47,8 +55,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            quay.io/${{ steps.image_name.outputs.image_name }}
-            public.ecr.aws/${{ steps.image_name.outputs.image_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           # generate Docker tags based on the following events/attributes
           tags: |
             # type=schedule
@@ -59,6 +66,12 @@ jobs:
             type=match,pattern=v(.*),group=1
             # type=sha
 
+      - name: debug metadata output
+        id: debug_metadata
+        run: |
+         env
+         echo ${{ steps.meta.outputs }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -66,46 +79,8 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v2
 
-      # The values provided to these two AWS steps are always the same for Panubo owned repos
-#      - name: Configure AWS Credentials
-#        uses: aws-actions/configure-aws-credentials@v1-node16
-#        with:
-#          role-to-assume: ${{ env.GITHUB_ROLE_ARN }}
-#          aws-region: us-east-1
-#
-#      - name: Login to ECR
-#        if: github.event_name != 'pull_request'
-#        uses: docker/login-action@v2
-#        with:
-#          registry: public.ecr.aws
-
-#      - name: Login to Quay.io
-#        if: github.event_name != 'pull_request'
-#        uses: docker/login-action@v2
-#        with:
-#          registry: quay.io
-#          username: ${{ secrets.PANUBUILD_QUAYIO_USERNAME }}
-#          password: ${{ secrets.PANUBUILD_QUAYIO_TOKEN }}
-#
-#      - name: Setup BATS
-#        uses: panubo/setup-bats-action@v2
-#        with:
-#          bats-version: 1.7.0
-
-      - name: Build and export to Docker
-        uses: docker/build-push-action@v4
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=gha
-          load: true
-          tags: ${{ steps.image_name.outputs.image_name }}:test
-
-      - name: Test
-        run: |
-          make _ci_test
-
       - name: Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
@@ -114,3 +89,4 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
