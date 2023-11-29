@@ -26,12 +26,13 @@ env:
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}    
 
-permissions:
-  id-token: write   # Required for OIDC
-  contents: read    # This is required for actions/checkout
+#permissions:
+#  id-token: write   # Required for OIDC
+#  contents: read    # This is required for actions/checkout
 
 jobs:
   build_and_push:
+    permission: write-all
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
