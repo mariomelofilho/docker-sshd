@@ -78,18 +78,18 @@ jobs:
 #        with:
 #          registry: public.ecr.aws
 
-      - name: Login to Quay.io
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
-        with:
-          registry: quay.io
-          username: ${{ secrets.PANUBUILD_QUAYIO_USERNAME }}
-          password: ${{ secrets.PANUBUILD_QUAYIO_TOKEN }}
-
-      - name: Setup BATS
-        uses: panubo/setup-bats-action@v2
-        with:
-          bats-version: 1.7.0
+#      - name: Login to Quay.io
+#        if: github.event_name != 'pull_request'
+#        uses: docker/login-action@v2
+#        with:
+#          registry: quay.io
+#          username: ${{ secrets.PANUBUILD_QUAYIO_USERNAME }}
+#          password: ${{ secrets.PANUBUILD_QUAYIO_TOKEN }}
+#
+#      - name: Setup BATS
+#        uses: panubo/setup-bats-action@v2
+#        with:
+#          bats-version: 1.7.0
 
       - name: Build and export to Docker
         uses: docker/build-push-action@v4
